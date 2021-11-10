@@ -1,0 +1,13 @@
+FROM python:3.8
+
+# Set the working directory to /app
+WORKDIR /holder
+ADD ./holder/requirements.txt /holder/requirements.txt
+
+# Install any needed packages
+RUN pip install -r  /holder/requirements.txt
+
+# Copy the current directory contents into the container at /app
+ADD ./holder /holder
+
+EXPOSE 8001
