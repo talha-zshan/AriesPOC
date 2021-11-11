@@ -43,7 +43,7 @@ async def check_active(request: web.Request):
 #     return web.json_response({'data': response})
 
 
-async def sendAndstoreCredential(request):
+async def sendAndStoreCredential(request):
     payload = await request.json()
     response = await holder_controller.send_and_store_credential(payload['cred_ex_id'])
 
