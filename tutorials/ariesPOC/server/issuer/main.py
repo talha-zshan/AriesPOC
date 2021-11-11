@@ -1,5 +1,5 @@
 from aiohttp import web
-from routes import setup_routes
+# from routes import setup_routes
 # from agent_controller import initialise
 from issuer_controller import initialize
 # from holder_controller import 
@@ -17,7 +17,7 @@ app = web.Application()
 # setup_routes(app)
 app.router.add_route("GET",'/getConnection', get_connection_id)
 app.router.add_route("POST",'/newSchema', add_schema)
-app.router.add_route("POST",'/addAttributes', get_credential)
+app.router.add_route("POST",'/sendCredential', send_credential)
 app.router.add_route("GET", '/getSchemaAndCred/{schema_name}/{schema_version}', getSchemaAndCredIDs)
 
 # Configure default CORS settings.

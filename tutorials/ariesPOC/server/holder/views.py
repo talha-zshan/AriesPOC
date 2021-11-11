@@ -1,7 +1,7 @@
 from aiohttp import web
 from aiohttp.web_response import Response
 import async_timeout
-from holder_controller import agent_controller, request_record
+from holder_controller import agent_controller
 import holder_controller
 import requests
 import datetime
@@ -35,23 +35,23 @@ async def check_active(request: web.Request):
         return web.json_response(json_response)
 
 
-async def record_request(request):
+# async def record_request(request):
+#     payload = await request.json()
+#     response = await holder_controller.request_record(payload['cred_ex_id'])
+
+#     print('Record Requested: ', response)
+#     return web.json_response({'data': response})
+
+
+async def sendAndstoreCredential(request):
     payload = await request.json()
-    response = await holder_controller.request_record(payload['cred_ex_id'])
-
-    print('Record Requested: ', response)
-    return web.json_response({'data': response})
-
-
-async def storeCredential(request):
-    payload = await request.json()
-    response = await holder_controller.store_credential(payload['cred_ex_id'])
+    response = await holder_controller.send_and_store_credential(payload['cred_ex_id'])
 
     print('Credential Stored: ', response)
     return web.json_response({'data': response})
 
-async def getRecords():
-    response = await holder_controller.get_holder_records()
+# async def getRecords():
+#     response = await holder_controller.get_holder_records()
 
-    print('Records', response)
-    return web.json_response({'Record': response})
+#     print('Records', response)
+#     return web.json_response({'Record': response})

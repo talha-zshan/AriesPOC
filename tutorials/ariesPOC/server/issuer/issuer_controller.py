@@ -144,7 +144,7 @@ async def write_schema_credential_definition(payload):
             'cred_def_id': cred_def_id}
 
 
-async def add_attributes(payload):
+async def sendCredential(payload):
 
     connection_id = payload['connection_id']
     schema_id = payload['schema_id']
@@ -157,7 +157,7 @@ async def add_attributes(payload):
     role = record['role']
 
     return {
-        "record_id": record_id,
+        "cred_ex_id": record_id,
         "state": state,
         "role": role
     }

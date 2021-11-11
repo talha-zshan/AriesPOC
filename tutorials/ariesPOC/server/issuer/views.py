@@ -63,11 +63,12 @@ async def add_schema(request):
 
     return web.json_response(result)
 
-async def get_credential(request):
+
+async def send_credential(request):
 
     payload = await request.json()
     # connection_id = await issuer_controller.get_connectionID()
-    response = await issuer_controller.add_attributes(payload)
+    response = await issuer_controller.sendCredential(payload)
 
     print('Attributes: ', response)
     result = {'credential': response}
