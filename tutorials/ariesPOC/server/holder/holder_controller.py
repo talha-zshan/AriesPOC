@@ -107,7 +107,8 @@ async def request_record(cred_ex_id):
 
 async def send_and_store_credential(cred_ex_id):
 
-    record = await agent_controller.issuer.send_request_for_record(cred_ex_id)
+    c_ex_id = get_record(cred_ex_id)
+    record = await agent_controller.issuer.send_request_for_record(c_ex_id)
     state = record['state']
     role = record['role']
     print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
