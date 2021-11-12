@@ -59,9 +59,9 @@ async def add_schema(request):
     response = await issuer_controller.write_schema_credential_definition(data)
 
     print('Schema Added: ', response)
-    result = {'data': response}
+    # result = {'data': response}
 
-    return web.json_response(result)
+    return web.json_response(response)
 
 
 async def send_credential(request):
@@ -71,9 +71,9 @@ async def send_credential(request):
     response = await issuer_controller.sendCredential(payload)
 
     print('Attributes: ', response)
-    result = {'credential': response}
+    # result = {'credential': response}
 
-    return web.json_response(result)
+    return web.json_response(response)
 
 
 
@@ -88,4 +88,4 @@ async def getSchemaAndCredIDs(request: web.Request):
 
     result = await issuer_controller.getSchemaAndCredDefIDs(payload)
 
-    return web.json_response({'schema': result})
+    return web.json_response(result)

@@ -71,12 +71,24 @@ async def get_holder_records():
         print(f"Being offered: {attributes}")
 
         # Request Credential from Issuer
-        res = request_record(cred_ex_id)
-        ret = store_credential(cred_ex_id)
+        # res = request_record(cred_ex_id)
+        # ret = store_credential(cred_ex_id)
 
-        return {"reqRec": res,
-                "storeCreds": ret}
+        return cred_ex_id
 
+
+async def get_record(record_id):
+    cred_record = await agent_controller.issuer.get_record_by_id(record_id)
+    print(cred_record)
+
+    cred_ex_id = cred_record['credential_exchange_id']
+    state = cred_record['state']
+    role = cred_record['role']
+    attributes = cred_record['credential_proposal_dict']['credential_proposal']['attributes']
+    print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
+    print(f"Being offered: {attributes}")
+
+    return cred_ex_id
 
 # async def send_credential(payload):
 #     connection_id = payload['connection_id'] 

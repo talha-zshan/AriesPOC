@@ -16,7 +16,7 @@ loop.run_until_complete(initialize())
 app = web.Application()
 # setup_routes(app)
 # app.router.add_route("POST",'/requestRecord', record_request)
-app.router.add_route("POST",'/approveAndStore', sendAndStoreCredential)
+app.router.add_route("POST",'/approve-store', sendAndStoreCredential)
 # app.router.add_route("POST",'/getRecord', getRecords)
 
 # Configure default CORS settings.

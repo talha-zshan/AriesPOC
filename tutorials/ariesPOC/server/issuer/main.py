@@ -15,10 +15,10 @@ loop.run_until_complete(initialize())
 
 app = web.Application()
 # setup_routes(app)
-app.router.add_route("GET",'/getConnection', get_connection_id)
-app.router.add_route("POST",'/newSchema', add_schema)
-app.router.add_route("POST",'/sendCredential', send_credential)
-app.router.add_route("GET", '/getSchemaAndCred/{schema_name}/{schema_version}', getSchemaAndCredIDs)
+app.router.add_route("GET",'/connection', get_connection_id)
+app.router.add_route("POST",'/schema', add_schema)
+app.router.add_route("POST",'/crendential', send_credential)
+app.router.add_route("GET", '/schema/{schema_name}/{schema_version}', getSchemaAndCredIDs)
 
 # Configure default CORS settings.
 cors = aiohttp_cors.setup(app, defaults={
