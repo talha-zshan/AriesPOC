@@ -90,11 +90,23 @@ async def getSchemaAndCredIDs(request: web.Request):
 
     return web.json_response(result)
 
+async def send_proof_request(self):
+    result = await issuer_controller.proof_request()
+    return web.json_response(result)
 
-# Testng DID Stuff
+
+async def verify_presentation(request: web.Request):
+    pres_ex_id = request.match_info['pres_ex_id']
+    result = await issuer_controller.verify_presentation(pres_ex_id)
+
+    return web.json_response(result)
+
 async def get_public_did(self):
     result = await issuer_controller.get_public_did()
     return web.json_response(result)
+
+
+# Testng DID Stuff
 
 async def get_all_dids(self):
     result = await issuer_controller.get_all_dids()

@@ -145,7 +145,7 @@ async def write_schema_credential_definition(payload):
 
 
 async def sendCredential(payload):
-
+    print("Sending Credential")
     connection_id = payload['connection_id']
     schema_id = payload['schema_id']
     cred_def_id = payload['cred_def_id']
@@ -155,6 +155,9 @@ async def sendCredential(payload):
     record_id = record['credential_exchange_id']
     state = record['state']
     role = record['role']
+
+    print("Entire Record")
+    print(record)
 
     return {
         "cred_ex_id": record_id,
@@ -180,8 +183,8 @@ async def getSchemaAndCredDefIDs(payload):
 
 async def get_public_did():
     response = await agent_controller.wallet.get_public_did()
-
-    return {'data': response}
+    did = response['result']['did']
+    return did
 
 async def get_all_dids():
     response = await agent_controller.wallet.get_dids()
@@ -190,3 +193,98 @@ async def get_all_dids():
 async def get_did_endpoint(did):
     response = await agent_controller.wallet.get_did_endpoint(did=did)
     return {'endpoint': response}
+
+# Verification
+async def build_request(issuer_did):
+    
+    revocation = False
+    SELF_ATTESTED = False
+    exchange_tracing = False
+
+    #Enable this to ask for attributes to identity a user
+    req_attrs = [
+        {"name": "name", "restrictions": [{"issuer_did": issuer_did}]},
+        {"name": "email", "restrictions": [{"issuer_did": issuer_did}]},
+    ]
+
+    if revocation:
+        req_attrs.append(
+            {
+                "name": "position",
+                "restrictions": [{"issuer_did": issuer_did}],
+                "non_revoked": {"to": int(time.time() - 1)},
+            },
+        )
+
+    if SELF_ATTESTED:
+        # test self-attested claims
+        req_attrs.append({"name": "country"},)
+
+    #Set predicates for Zero Knowledge Proofs
+    req_preds = [
+        # test zero-knowledge proofs
+        {
+            "name": "email",
+            "p_type": ">=",
+            "p_value": 21,
+            "restrictions": [{"issuer_did": issuer_did}],
+        }
+    ]
+
+    indy_proof_request = {
+        "name": "Proof of Ownership",
+        "version": "1.0",
+        "requested_attributes": {
+            f"0_{req_attr['name']}_uuid":
+            req_attr for req_attr in req_attrs
+        },
+        "requested_predicates": {
+            f"0_{req_pred['name']}_GE_uuid":
+            req_pred for req_pred in req_preds
+        },
+    }
+
+    if revocation:
+        indy_proof_request["non_revoked"] = {"to": int(time.time())}
+
+    #proof_request = indy_proof_request
+    exchange_tracing_id = exchange_tracing
+    proof_request_web_request = {
+        "connection_id": await get_connectionID(),
+        "proof_request": indy_proof_request,
+        "trace": exchange_tracing,
+    }
+
+    return proof_request_web_request
+
+async def proof_request():
+    issuer_did = await get_public_did()
+    proof_request_web_request = await build_request(issuer_did)
+
+    response = await agent_controller.proofs.send_request(proof_request_web_request)
+    print(response)
+    print("\n")
+
+    presentation_exchange_id = response['presentation_exchange_id']
+    print("\n")
+
+    print(presentation_exchange_id)
+
+    return presentation_exchange_id
+
+
+async def verify_presentation(presentation_exchange_id):
+    verify = await agent_controller.proofs.verify_presentation(presentation_exchange_id)
+    print(verify)
+
+    print(verify['state'])
+    print(verify['state'] == 'verified')
+
+    for (name, val) in verify['presentation']['requested_proof']['revealed_attrs'].items():
+        ## This is the actual data that you want. It's a little hidden
+        print(name + " : " + val['raw'])
+    
+    for (name, val) in verify['presentation']['requested_proof']['self_attested_attrs'].items():
+        print(name + " : " + val)
+    
+    return "OK"

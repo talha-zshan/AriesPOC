@@ -51,13 +51,21 @@ async def sendAndStoreCredential(request):
     return web.json_response({'data': response})
 
 async def approveAndGet(self):
-    response = await holder_controller.get_holder_records()
+    res = await holder_controller.get_holder_records()
+    json = {'data': res}
+    return web.json_response(json)
 
-    print(response)
-    return web.json_response(response)
+async def send_proof(self):
+    result = await holder_controller.send_presentation()
+    return web.json_response(result)
 
-# async def getRecords():
-#     response = await holder_controller.get_holder_records()
+# Test API Calls
+async def recRequest(request: web.Request):
+    cred_ex_id = request.match_info["cred_ex_id"]
+    res = await holder_controller.send_req_for_rec(cred_ex_id)
+    return web.json_response(res)
 
-#     print('Records', response)
-#     return web.json_response({'Record': response})
+async def checkState(request: web.Request):
+    cred_ex_id = request.match_info['cred_ex_id']
+    res = await holder_controller.check_cred_state(cred_ex_id)
+    return web.json_response(res)

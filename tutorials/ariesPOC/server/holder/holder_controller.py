@@ -1,3 +1,4 @@
+from os import stat
 import time
 import asyncio
 
@@ -71,10 +72,9 @@ async def get_holder_records():
         print(f"Being offered: {attributes}")
 
         # Request Credential from Issuer
-        res = send_and_store_credential(cred_ex_id)
+        # res = await send_and_store_credential(cred_ex_id)
         # ret = store_credential(cred_ex_id)
-
-        return {res}
+        return cred_ex_id
 
 
 async def get_record(record_id):
@@ -107,7 +107,7 @@ async def request_record(cred_ex_id):
 
 async def send_and_store_credential(cred_ex_id):
 
-    c_ex_id = get_record(cred_ex_id)
+    c_ex_id = await get_record(cred_ex_id)
     record = await agent_controller.issuer.send_request_for_record(c_ex_id)
     state = record['state']
     role = record['role']
@@ -126,3 +126,85 @@ async def send_and_store_credential(cred_ex_id):
     print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
 
     return response
+
+
+async def send_presentation():
+    response = await agent_controller.proofs.get_records()
+    print(response)
+
+    print('\n')
+
+    state = response['results'][0]["state"]
+    presentation_exchange_id = response['results'][0]['presentation_exchange_id']
+    presentation_request = response['results'][0]['presentation_request']
+
+    if state == "request_received":
+        print("Received Request -> Query for credentials in the wallet that satisfy the proof request")
+    
+    # include self-attested attributes (not included in credentials)
+    credentials_by_reft = {}
+    revealed = {}
+    self_attested = {}
+    predicates = {}
+
+    # select credentials to provide for the proof
+    credentials = await agent_controller.proofs.get_presentation_credentials(presentation_exchange_id)
+    print(credentials)
+
+    if credentials:
+        for row in sorted(
+            credentials,
+            key=lambda c: dict(c["cred_info"]["attrs"]),
+            reverse=True,
+        ):
+            for referent in row["presentation_referents"]:
+                if referent not in credentials_by_reft:
+                    credentials_by_reft[referent] = row
+
+    for referent in presentation_request["requested_attributes"]:
+        if referent in credentials_by_reft:
+            revealed[referent] = {
+                "cred_id": credentials_by_reft[referent]["cred_info"][
+                    "referent"
+                ],
+                "revealed": True,
+            }
+        else:
+            self_attested[referent] = "South Africa"
+
+    for referent in presentation_request["requested_predicates"]:
+        if referent in credentials_by_reft:
+            predicates[referent] = {
+                "cred_id": credentials_by_reft[referent]["cred_info"][
+                    "referent"
+                ]
+            }
+
+    print("\nGenerate the proof")
+    proof = {
+        "requested_predicates": predicates,
+        "requested_attributes": revealed,
+        "self_attested_attributes": self_attested,
+    }
+
+    response = await agent_controller.proofs.send_presentation(presentation_exchange_id, proof)
+
+    return response
+
+
+
+# Test API Calls
+async def send_req_for_rec(cred_ex_id):
+    record = await agent_controller.issuer.send_request_for_record(cred_ex_id)
+    state = record['state']
+    role = record['role']
+    print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
+    return state
+
+
+async def check_cred_state(cred_ex_id):
+    record = await agent_controller.issuer.get_record_by_id(cred_ex_id)
+    state = record['state']
+    role = record['role']
+    print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
+    return state
