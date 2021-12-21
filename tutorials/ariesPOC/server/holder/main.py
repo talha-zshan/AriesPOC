@@ -5,7 +5,7 @@ from holder_controller import initialize
 # from holder_controller import 
 import asyncio
 import aiohttp_cors
-from views import approveAndGet, sendAndStoreCredential, send_proof, recRequest, checkState
+from views import approveAndGet, send_proof_by_id, sendAndStoreCredential, send_proof, recRequest, checkState
 
 # issuer_loop = asyncio.get_event_loop()
 loop = asyncio.get_event_loop()
@@ -14,12 +14,20 @@ loop = asyncio.get_event_loop()
 loop.run_until_complete(initialize())
 
 app = web.Application()
-# setup_routes(app)
+
 # app.router.add_route("POST",'/requestRecord', record_request)
-app.router.add_route("POST",'/approve-store', sendAndStoreCredential)
+
+# Accept Attr offered by issuer
 app.router.add_route("GET", '/accept-issue', approveAndGet)
+
+
+# Send Proof to Issuer
 app.router.add_route("GET",'/send-proof', send_proof)
+app.router.add_route("GET",'/send-proof/{pres_ex_id}', send_proof_by_id)
+
+
 app.router.add_route("GET",'/request/{cred_ex_id}', recRequest)
+
 app.router.add_route("GET",'/check/{cred_ex_id}', checkState)
 # app.router.add_route("POST",'/getRecord', getRecords)
 

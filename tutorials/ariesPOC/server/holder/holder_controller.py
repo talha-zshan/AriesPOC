@@ -27,11 +27,12 @@ def cred_handler(payload):
     print(f"Credential exchange {exchange_id}, role: {role}, state: {state}")
     print(f"Attributes: {attributes}")
 
-
 cred_listener = {
     "topic": "issue_credential",
     "handler": cred_handler
 }
+
+
 agent_controller.register_listeners([cred_listener], defaults=True)
 
 
@@ -137,6 +138,71 @@ async def send_presentation():
     state = response['results'][0]["state"]
     presentation_exchange_id = response['results'][0]['presentation_exchange_id']
     presentation_request = response['results'][0]['presentation_request']
+
+    if state == "request_received":
+        print("Received Request -> Query for credentials in the wallet that satisfy the proof request")
+    
+    # include self-attested attributes (not included in credentials)
+    credentials_by_reft = {}
+    revealed = {}
+    self_attested = {}
+    predicates = {}
+
+    # select credentials to provide for the proof
+    credentials = await agent_controller.proofs.get_presentation_credentials(presentation_exchange_id)
+    print(credentials)
+
+    if credentials:
+        for row in sorted(
+            credentials,
+            key=lambda c: dict(c["cred_info"]["attrs"]),
+            reverse=True,
+        ):
+            for referent in row["presentation_referents"]:
+                if referent not in credentials_by_reft:
+                    credentials_by_reft[referent] = row
+
+    for referent in presentation_request["requested_attributes"]:
+        if referent in credentials_by_reft:
+            revealed[referent] = {
+                "cred_id": credentials_by_reft[referent]["cred_info"][
+                    "referent"
+                ],
+                "revealed": True,
+            }
+        else:
+            self_attested[referent] = "South Africa"
+
+    for referent in presentation_request["requested_predicates"]:
+        if referent in credentials_by_reft:
+            predicates[referent] = {
+                "cred_id": credentials_by_reft[referent]["cred_info"][
+                    "referent"
+                ]
+            }
+
+    print("\nGenerate the proof")
+    proof = {
+        "requested_predicates": predicates,
+        "requested_attributes": revealed,
+        "self_attested_attributes": self_attested,
+    }
+
+    response = await agent_controller.proofs.send_presentation(presentation_exchange_id, proof)
+
+    return response
+
+
+
+async def send_presentation_by_id(pres_ex_id):
+    response = await agent_controller.proofs.get_record_by_id(pres_ex_id)
+    print(response)
+
+    print('\n')
+
+    state = response["state"]
+    presentation_exchange_id = response['presentation_exchange_id']
+    presentation_request = response['presentation_request']
 
     if state == "request_received":
         print("Received Request -> Query for credentials in the wallet that satisfy the proof request")

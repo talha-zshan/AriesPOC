@@ -270,7 +270,11 @@ async def proof_request():
 
     print(presentation_exchange_id)
 
-    return presentation_exchange_id
+    result = {
+        'presentation_exchange_id': presentation_exchange_id
+    }
+
+    return result
 
 
 async def verify_presentation(presentation_exchange_id):

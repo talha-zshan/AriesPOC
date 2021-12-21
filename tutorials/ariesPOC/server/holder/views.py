@@ -59,6 +59,11 @@ async def send_proof(self):
     result = await holder_controller.send_presentation()
     return web.json_response(result)
 
+async def send_proof_by_id(request: web.Request):
+    payload = request.match_info['pres_ex_id']
+    res = await holder_controller.send_presentation_by_id(payload)
+    return web.json_response(res)
+
 # Test API Calls
 async def recRequest(request: web.Request):
     cred_ex_id = request.match_info["cred_ex_id"]
