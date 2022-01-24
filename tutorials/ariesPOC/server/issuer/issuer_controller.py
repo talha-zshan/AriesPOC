@@ -194,6 +194,12 @@ async def get_did_endpoint(did):
     response = await agent_controller.wallet.get_did_endpoint(did=did)
     return {'endpoint': response}
 
+# Resolve DID
+# async def resolve_did(did):
+#     response = await agent_controller.wallet.
+
+
+
 # Verification
 async def build_request(issuer_did):
     

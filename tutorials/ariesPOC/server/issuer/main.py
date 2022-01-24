@@ -22,9 +22,10 @@ app.router.add_route("GET", '/schema/{schema_name}/{schema_version}', getSchemaA
 app.router.add_route("GET", '/proof-request', send_proof_request)
 app.router.add_route('GET', '/verify/{pres_ex_id}', verify_presentation)
 
-app.router.add_route("GET", '/public-did', get_public_did)
+app.router.add_route("GET", '/get-did', get_public_did)
 app.router.add_route("GET", '/all-dids', get_all_dids)
 app.router.add_route("GET", '/did-endpoint/{did}', get_did_endpoint)
+# app.router.add_route("GET",'/resolve/{did}', resolve_did)
 
 # Configure default CORS settings.
 cors = aiohttp_cors.setup(app, defaults={

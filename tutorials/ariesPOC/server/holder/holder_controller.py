@@ -106,27 +106,27 @@ async def request_record(cred_ex_id):
     return record
 
 
-async def send_and_store_credential(cred_ex_id):
+# async def send_and_store_credential(cred_ex_id):
 
-    c_ex_id = await get_record(cred_ex_id)
-    record = await agent_controller.issuer.send_request_for_record(c_ex_id)
-    state = record['state']
-    role = record['role']
-    print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
+#     c_ex_id = await get_record(cred_ex_id)
+#     record = await agent_controller.issuer.send_request_for_record(c_ex_id)
+#     state = record['state']
+#     role = record['role']
+#     print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
 
-    # Check if credential record is in credential_received state
-    record = await agent_controller.issuer.get_record_by_id(cred_ex_id)
-    state = record['state']
-    role = record['role']
-    print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
+#     # Check if credential record is in credential_received state
+#     record = await agent_controller.issuer.get_record_by_id(cred_ex_id)
+#     state = record['state']
+#     role = record['role']
+#     print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
 
-    # Store credential
-    response = await agent_controller.issuer.store_credential(cred_ex_id, "My Loyalty Credential")
-    state = response['state']
-    role = response['role']
-    print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
+#     # Store credential
+#     response = await agent_controller.issuer.store_credential(cred_ex_id, "My Loyalty Credential")
+#     state = response['state']
+#     role = response['role']
+#     print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
 
-    return response
+#     return response
 
 
 async def send_presentation():
@@ -195,6 +195,7 @@ async def send_presentation():
 
 
 async def send_presentation_by_id(pres_ex_id):
+    # response = await agent_controller.proofs.get_records(connection_id=)
     response = await agent_controller.proofs.get_record_by_id(pres_ex_id)
     print(response)
 
@@ -274,3 +275,9 @@ async def check_cred_state(cred_ex_id):
     role = record['role']
     print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
     return state
+
+
+async def getAllRecords():
+    res = await agent_controller.issuer.get_records()
+    results = res['results']
+    return results

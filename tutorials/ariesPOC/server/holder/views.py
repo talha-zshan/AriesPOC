@@ -43,12 +43,12 @@ async def check_active(request: web.Request):
 #     return web.json_response({'data': response})
 
 
-async def sendAndStoreCredential(request):
-    payload = await request.json()
-    response = await holder_controller.send_and_store_credential(payload['cred_ex_id'])
+# async def sendAndStoreCredential(request):
+#     payload = await request.json()
+#     response = await holder_controller.send_and_store_credential(payload['cred_ex_id'])
 
-    print('Credential Stored: ', response)
-    return web.json_response({'data': response})
+#     print('Credential Stored: ', response)
+#     return web.json_response({'data': response})
 
 async def approveAndGet(self):
     res = await holder_controller.get_holder_records()
@@ -73,4 +73,14 @@ async def recRequest(request: web.Request):
 async def checkState(request: web.Request):
     cred_ex_id = request.match_info['cred_ex_id']
     res = await holder_controller.check_cred_state(cred_ex_id)
+    return web.json_response(res)
+
+
+async def getRecordById(request: web.Request):
+    cred_ex_id = request.match_info['cred_ex_id']
+    res = await holder_controller.get_record(cred_ex_id)
+    return web.json_response(res)
+
+async def get_all_records(self):
+    res = await holder_controller.getAllRecords()
     return web.json_response(res)
