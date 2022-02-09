@@ -13,36 +13,64 @@ ADMIN_URL = "http://alice-agent:8021"
 
 API_KEY = "alice_api_123456789"
 
-agent_controller = AriesAgentController(admin_url=ADMIN_URL, api_key=API_KEY, webhook_host=WEBHOOK_HOST, webhook_port=WEBHOOK_PORT, webhook_base=WEBHOOK_BASE)
-# agent_controller.init_webhook_server(webhook_host=WEBHOOK_HOST, webhook_port=WEBHOOK_PORT, webhook_base=WEBHOOK_BASE)
-
-# loop = asyncio.get_event_loop()
-# loop.create_task(agent_controller.listen_webhooks())
+agent_controller = AriesAgentController(admin_url=ADMIN_URL, api_key=API_KEY,
+                                        webhook_host=WEBHOOK_HOST, webhook_port=WEBHOOK_PORT, webhook_base=WEBHOOK_BASE)
 
 def connection_handler(payload):
     print("Connection Handler Called")
     connection_id = payload["connection_id"]
     state = payload["state"]
     print(f"Connection {connection_id} in State {state}")
-    
+
+
 connection_listener = {
     "handler": connection_handler,
     "topic": "connections"
 }
 
+
 def cred_handler(payload):
-    print("Handle Credentials")
+    connection_id = payload['connection_id']
     exchange_id = payload['credential_exchange_id']
     state = payload['state']
     role = payload['role']
-    attributes = payload['credential_proposal_dict']['credential_proposal']['attributes']
-    print(f"Credential exchange {exchange_id}, role: {role}, state: {state}")
-    print(f"Offering: {attributes}")
-    
+    print("\n---------------------------------------------------\n")
+    print("Handle Issue Credential Webhook")
+    print(f"Connection ID : {connection_id}")
+    print(f"Credential exchange ID : {exchange_id}")
+    print("Agent Protocol Role : ", role)
+    print("Protocol State : ", state)
+    print("\n---------------------------------------------------\n")
+
+    if state == "offer_sent":
+        proposal = payload["credential_proposal_dict"]
+        attributes = proposal['credential_proposal']['attributes']
+        print(f"Offering credential with attributes  : {attributes}")
+        # YOUR LOGIC HERE
+    elif state == "request_received":
+        print("Request for credential received")
+        # YOUR LOGIC HERE
+        # response = await agent_controller.issuer.send_offer_for_record(exchange_id)
+
+    elif state == "credential_sent":
+        print("Credential Sent")
+        # YOUR LOGIC HERE
+
+# def cred_handler(payload):
+#     print("Handle Credentials")
+#     exchange_id = payload['credential_exchange_id']
+#     state = payload['state']
+#     role = payload['role']
+#     nonce = payload['credential_offer']['nonce']
+#     attributes = payload['credential_proposal_dict']['credential_proposal']['attributes']
+#     print(f"Credential exchange {exchange_id}, role: {role}, state: {state}, none: {nonce}")
+#     print(f"Offering: {attributes}")
+
 cred_listener = {
     "topic": "issue_credential",
     "handler": cred_handler
 }
+
 
 async def initialize():
     await agent_controller.listen_webhooks()
@@ -55,8 +83,7 @@ async def initialize():
             is_alive = True
             logger.info("Agent Active")
         except:
-            time.sleep(5)    
-
+            time.sleep(5)
 
     # Check if agents are connected
     response = await agent_controller.connections.get_connections()
@@ -66,43 +93,13 @@ async def initialize():
     if len(results) > 0:
         connection = response['results'][0]
         print("Connection :", connection)
-        if connection['state'] == 'active':       
+        if connection['state'] == 'active':
             connection_id = connection["connection_id"]
             print("Active Connection ID : ", connection_id)
             return connection_id
     else:
         print("You must create a connection")
         raise Exception('No Connection between Agents')
-    
-    # schema_name = 'my_schema'
-    # schema_version = '0.0.1'
-    # attributes = ["name", "email", "company", "position"]
-
-    # response = await agent_controller.schema.write_schema(schema_name, attributes, schema_version)
-    # schema_id = response['schema_id']
-
-    # res = await agent_controller.definitions.write_cred_def(schema_id)
-    # cred_def_id = res['credential_definition_id']
-
-    # print({"Schema_id: ", schema_id, 'Cred_def_id: ', cred_def_id})
-
-    # # connection_id = get_connectionID()
-    # # schema_id = payload['schema_id']
-    # # cred_def_id = payload['cred_def_id']
-    # credential_attributes = [
-    #     {"name": "name", "value": "Kamer"},
-    #     {"name": "email", "value": "test@gmail.com"},
-    #     {"name": "company", "value": "Dakik"},
-    #     {"name": "position", "value": "Manager"}
-    # ] 
-
-    # record = await agent_controller.issuer.send_credential(connection_id, schema_id, cred_def_id, credential_attributes, auto_remove=False, trace=True)
-    # record_id = record['credential_exchange_id']
-    # state = record['state']
-    # role = record['role']
-    # print("Credential: ", record)
-
-    # return schema_id
 
 
 async def create_invitation():
@@ -113,6 +110,7 @@ async def create_invitation():
     print("Invitation")
     print(invite_message)
 
+
 async def get_connectionID():
     response = await agent_controller.connections.get_connections()
     results = response['results']
@@ -120,7 +118,7 @@ async def get_connectionID():
     if len(results) > 0:
         connection = response['results'][0]
         print("Connection :", connection)
-        if connection['state'] == 'active':       
+        if connection['state'] == 'active':
             connection_id = connection["connection_id"]
             print("Active Connection ID : ", connection_id)
             return connection_id
@@ -140,7 +138,7 @@ async def write_schema_credential_definition(payload):
     res = await agent_controller.definitions.write_cred_def(schema_id)
     cred_def_id = res['credential_definition_id']
 
-    return {'schema_id': schema_id, 
+    return {'schema_id': schema_id,
             'cred_def_id': cred_def_id}
 
 
@@ -155,6 +153,7 @@ async def sendCredential(payload):
     record_id = record['credential_exchange_id']
     state = record['state']
     role = record['role']
+    nonce = record['credential_offer']['nonce']
 
     print("Entire Record")
     print(record)
@@ -162,8 +161,18 @@ async def sendCredential(payload):
     return {
         "cred_ex_id": record_id,
         "state": state,
-        "role": role
+        "role": role,
+        "nonce": nonce
     }
+
+async def issue_credential(payload):
+    comment = payload['comment']
+    cred_ex_id = payload['cred_ex_id']
+    attributes = payload['attributes']
+
+    response = await agent_controller.issuer.issue_credential(cred_ex_id, comment, attributes)
+
+    return response
 
 
 async def getSchemaAndCredDefIDs(payload):
@@ -173,7 +182,7 @@ async def getSchemaAndCredDefIDs(payload):
     schemas = await agent_controller.schema.get_created_schema(schema_name=schema_name, schema_version=schema_version)
     cred_defs = await agent_controller.definitions.search_created(schema_name=schema_name, schema_version=schema_version)
 
-    result = { 
+    result = {
         'schema_ids': schemas,
         'cred_def_ids': cred_defs
     }
@@ -186,28 +195,25 @@ async def get_public_did():
     did = response['result']['did']
     return did
 
+
 async def get_all_dids():
     response = await agent_controller.wallet.get_dids()
     return {'dids': response}
+
 
 async def get_did_endpoint(did):
     response = await agent_controller.wallet.get_did_endpoint(did=did)
     return {'endpoint': response}
 
-# Resolve DID
-# async def resolve_did(did):
-#     response = await agent_controller.wallet.
-
-
 
 # Verification
 async def build_request(issuer_did):
-    
+
     revocation = False
     SELF_ATTESTED = False
     exchange_tracing = False
 
-    #Enable this to ask for attributes to identity a user
+    # Enable this to ask for attributes to identity a user
     req_attrs = [
         {"name": "name", "restrictions": [{"issuer_did": issuer_did}]},
         {"name": "email", "restrictions": [{"issuer_did": issuer_did}]},
@@ -226,7 +232,7 @@ async def build_request(issuer_did):
         # test self-attested claims
         req_attrs.append({"name": "country"},)
 
-    #Set predicates for Zero Knowledge Proofs
+    # Set predicates for Zero Knowledge Proofs
     req_preds = [
         # test zero-knowledge proofs
         {
@@ -263,6 +269,7 @@ async def build_request(issuer_did):
 
     return proof_request_web_request
 
+
 async def proof_request():
     issuer_did = await get_public_did()
     proof_request_web_request = await build_request(issuer_did)
@@ -291,10 +298,18 @@ async def verify_presentation(presentation_exchange_id):
     print(verify['state'] == 'verified')
 
     for (name, val) in verify['presentation']['requested_proof']['revealed_attrs'].items():
-        ## This is the actual data that you want. It's a little hidden
+        # This is the actual data that you want. It's a little hidden
         print(name + " : " + val['raw'])
-    
+
     for (name, val) in verify['presentation']['requested_proof']['self_attested_attrs'].items():
         print(name + " : " + val)
-    
+
     return "OK"
+
+
+# async def verify_presentation(conn_id, role, state):
+#     response = await agent_controller.proofs.get_records(connection_id=conn_id, role=role, state=state)
+#     print(response)
+#     print('\n')
+
+#     results = response['results']    

@@ -5,7 +5,7 @@ from holder_controller import initialize
 # from holder_controller import 
 import asyncio
 import aiohttp_cors
-from views import approveAndGet, send_proof_by_id, send_proof, recRequest, checkState, getRecordById, get_all_records
+from views import *
 
 # issuer_loop = asyncio.get_event_loop()
 loop = asyncio.get_event_loop()
@@ -15,23 +15,23 @@ loop.run_until_complete(initialize())
 
 app = web.Application()
 
-# app.router.add_route("POST",'/requestRecord', record_request)
-
 # Accept Attr offered by issuer
 app.router.add_route("GET", '/accept-issue', approveAndGet)
-
+app.router.add_route("GET",'/accept-credential', accept_cred_request)
 
 # Send Proof to Issuer
+app.router.add_route('GET', '/send-proposal', send_proof_proposal)
 app.router.add_route("GET",'/send-proof', send_proof)
-app.router.add_route("GET",'/send-proof/{pres_ex_id}', send_proof_by_id)
-app.router.add_route("GET",'/request/{cred_ex_id}', recRequest)
-app.router.add_route("GET",'/check/{cred_ex_id}', checkState)
-# app.router.add_route("POST",'/getRecord', getRecords)
+
+# Get all credentials
+app.router.add_route("GET", '/credentials', getAllCredentials)
 
 # Test Stuff
 app.router.add_route('GET', '/get_record/{cred_ex_id}', getRecordById )
 app.router.add_route('GET','/get-all-records', get_all_records)
-
+app.router.add_route('GET', '/my-credential', mycredential)
+app.router.add_route("GET",'/request/{cred_ex_id}', recRequest)
+app.router.add_route("GET",'/check/{cred_ex_id}', checkState)
 
 # Configure default CORS settings.
 cors = aiohttp_cors.setup(app, defaults={

@@ -48,7 +48,13 @@ async def send_credential(request):
 
     return web.json_response(response)
 
+async def issue_credential(request):
+    payload = await request.json()
+    # cred_ex_id = payload['cred_ex_id']
 
+    response = await issuer_controller.issue_credential(payload)
+
+    return response
 
 async def getSchemaAndCredIDs(request: web.Request):
     schema_name = request.match_info['schema_name']
