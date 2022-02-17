@@ -80,6 +80,20 @@ async def verify_presentation(request: web.Request):
 
     return web.json_response(result)
 
+async def verify_proof(request: web.Request):
+    payload = request.json()
+    conn_id = payload['conn_id']
+    state = payload['state']
+    role = payload['role']
+    cred_def_id = payload['cred_def_id']
+    schema_id = payload['schema_id']
+
+    result = await issuer_controller.verify_proof(conn_id, role, state, cred_def_id, schema_id)
+
+    return web.json(result)
+
+
+
 async def get_public_did(self):
     result = await issuer_controller.get_public_did()
     return web.json_response(result)

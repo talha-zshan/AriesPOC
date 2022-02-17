@@ -50,7 +50,7 @@ def cred_handler(payload):
         attributes = proposal['credential_proposal']['attributes']
         print(attributes)
         # YOUR LOGIC HERE
-        request = send_request_credential(exchange_id)
+        # request = send_request_credential(exchange_id)
 
     elif state == "request_sent":
         print("\nA credential request object contains the commitment to the agents master secret using the nonce from the offer")
@@ -131,19 +131,24 @@ async def accept_credential(cred_def_id, issuer_did, schema_id, schema_issuer_di
     state = credential['state']
     role = credential['role']
     attributes = credential['credential_proposal_dict']['credential_proposal']['attributes']
+    cred_ex_id = credential['credential_exchange_id']
+
+    res = await agent_controller.issuer.send_request_for_record(cred_def_id)
+
     print(
         f"Credential role: {role}, state: {state}")
     print(f"Being offered: {attributes}")
 
+
     return credential
 
-async def send_request_credential(cred_ex_id):
-    record = await agent_controller.issuer.send_request_for_record(cred_ex_id)
-    state = record['state']
-    role = record['role']
-    print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
+# async def send_request_credential(cred_ex_id):
+#     record = await agent_controller.issuer.send_request_for_record(cred_ex_id)
+#     state = record['state']
+#     role = record['role']
+#     print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
 
-    return record
+#     return record
 
 async def store_credential(cred_ex_id, name):
     res = await agent_controller.issuer.store_credential(cred_ex_id, name)
@@ -336,8 +341,7 @@ async def find_credential(cred_def_id, issuer_did, schema_id, schema_issuer_did,
     else:
         all_cred_reqs = results["results"]
         for credential in all_cred_reqs:
-            if(credential['credential_definition_id'] == cred_def_id and credential['schema_id'] == schema_id and credential['issuer_did'] == issuer_did and credential['schema_issuer_did'] == schema_issuer_did and credential['schema_name'] == schema_name and credential['schema_version'] == schema_version):
+            # cred_proposal = credential['credential_proposal_dict']
+            print(credential)
+            if(credential['cred_def_id'] == cred_def_id and credential['schema_id'] == schema_id and credential['issuer_did'] == issuer_did and credential['schema_issuer_did'] == schema_issuer_did and credential['schema_name'] == schema_name and credential['schema_version'] == schema_version):
                 return credential
-
-
-# async def find_proof_request(cred_def_id)

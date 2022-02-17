@@ -26,7 +26,7 @@ app.router.add_route("GET",'/connection', get_connection_id)
 
 # Proof and Verification
 app.router.add_route("GET", '/proof-request', send_proof_request)
-app.router.add_route('GET', '/verify/{pres_ex_id}', verify_presentation)
+app.router.add_route('GET', '/verify', verify_proof)
 
 # DID API Calls
 app.router.add_route("GET", '/get-did', get_public_did)

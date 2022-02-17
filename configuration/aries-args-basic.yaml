@@ -36,6 +36,13 @@ seed: !ENV ${WALLET_SEED}
 auto-provision: true
 
 
+#Other Options
+auto-respond-credential-proposal: false
+auto-respond-credential-offer: false
+auto-respond-credential-request: true
+auto-store-credential: true
+auto-respond-presentation-request: true
+
 ## run a local postgres (docker) like:
 ##    docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres:10
 # wallet-storage-type: postgres_storage

@@ -16,7 +16,7 @@ loop.run_until_complete(initialize())
 app = web.Application()
 
 # Accept Attr offered by issuer
-app.router.add_route("GET", '/accept-issue', approveAndGet)
+# app.router.add_route("GET", '/accept-issue', approveAndGet)
 app.router.add_route("GET",'/accept-credential', accept_cred_request)
 
 # Send Proof to Issuer

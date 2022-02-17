@@ -83,6 +83,10 @@ services:
       - ACAPY_TAILS_SERVER_BASE_URL=http://tails-server:6543
       - GENESIS_URL=${GENESIS_URL}
       - NGROK_NAME=alice-ngrok-agent
+      # - ACAPY_MULTITENANT=true
+      # - ACAPY_MULTITENANT_JWT_SECRET="password"
+      # - ACAPY_MULTITENANT_ADMIN=true
+      # - ACAPY_ADMIN_INSECURE_MODE=${ALICE_ADMIN_SECURE}
     ports:
       - ${ALICE_HTTP_PORT}:${ALICE_HTTP_PORT}
       - ${ALICE_ADMIN_PORT}:${ALICE_ADMIN_PORT}

@@ -307,9 +307,33 @@ async def verify_presentation(presentation_exchange_id):
     return "OK"
 
 
-# async def verify_presentation(conn_id, role, state):
-#     response = await agent_controller.proofs.get_records(connection_id=conn_id, role=role, state=state)
-#     print(response)
-#     print('\n')
+async def verify_proof(conn_id, role, state, cred_def_id, schema_id):
+    response = await agent_controller.proofs.get_records(connection_id=conn_id, role=role, state=state)
+    print(response)
+    print('\n')
 
-#     results = response['results']    
+    results = response['results']
+    request = find_proof_request(results, cred_def_id, schema_id)
+
+    pres_ex_id = request['presentation_exchange_id']
+
+    verify = await agent_controller.proofs.verify_presentation(pres_ex_id)
+
+    return "OK"
+
+def find_proof_request( results ,cred_def_id, schema_id):
+    for req in results:
+        iden = req['presentation']['identifiers'][0]
+        if(iden['cred_def_id'] == cred_def_id and iden['schema_id'] == schema_id):
+            return req
+    return 0
+
+    # results = await agent_controller.issuer.get_records()
+    # if len(results) == 0:
+    #     print("You need to first send a credential from the issuer (Alice)")
+    #     return 0
+    # else:
+    #     all_cred_reqs = results["results"]
+    #     for credential in all_cred_reqs:
+    #         if(credential['credential_definition_id'] == cred_def_id and credential['schema_id'] == schema_id and credential['issuer_did'] == issuer_did and credential['schema_issuer_did'] == schema_issuer_did and credential['schema_name'] == schema_name and credential['schema_version'] == schema_version):
+    #             return credential
