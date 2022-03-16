@@ -1,8 +1,9 @@
 from os import stat
 import time
 import asyncio
-
+import pprint
 from aries_basic_controller.aries_controller import AriesAgentController
+# from parso import parse
 
 WEBHOOK_HOST = "0.0.0.0"
 WEBHOOK_PORT = 8052
@@ -58,7 +59,7 @@ def cred_handler(payload):
     elif state == "credential_received":
         print("Received Credential")
         # YOUR LOGIC HERE
-        response = agent_controller.issuer.store_credential(exchange_id,"New Credential")
+        # response = agent_controller.issuer.store_credential(exchange_id,"New Credential")
     elif state == "credential_acked":
         # YOUR LOGIC HERE
         credential = payload["credential"]
@@ -100,6 +101,19 @@ async def initialize():
         print("You must create a connection")
         raise Exception('No Connection between Agents')
 
+async def create_invitation():
+    invite = await agent_controller.connections.create_invitation()
+    connection_id = invite["connection_id"]
+    invite_message = invite['invitation']
+    print("Connection ID", connection_id)
+    print("Invitation")
+    print(invite_message)
+
+    return invite_message
+
+
+async def accept_connection(invite):
+    response = await agent_controller.connections.accept_connection(invite)
 
 async def get_holder_records():
     response = await agent_controller.issuer.get_records()
@@ -123,17 +137,16 @@ async def get_holder_records():
 
 
 # Credential Request and Acceptance Calls
-async def accept_credential(cred_def_id, issuer_did, schema_id, schema_issuer_did, schema_name, schema_version):
+async def accept_credential(cred_def_id, schema_id):
 
-    credential = await find_credential(cred_def_id=cred_def_id, issuer_did=issuer_did, schema_id=schema_id,
-                                       schema_issuer_did=schema_issuer_did, schema_name=schema_name, schema_version=schema_version)
+    credential = await find_credential(cred_def_id=cred_def_id, schema_id=schema_id)
 
     state = credential['state']
     role = credential['role']
     attributes = credential['credential_proposal_dict']['credential_proposal']['attributes']
     cred_ex_id = credential['credential_exchange_id']
 
-    res = await agent_controller.issuer.send_request_for_record(cred_def_id)
+    res = await agent_controller.issuer.send_request_for_record(cred_ex_id)
 
     print(
         f"Credential role: {role}, state: {state}")
@@ -141,14 +154,6 @@ async def accept_credential(cred_def_id, issuer_did, schema_id, schema_issuer_di
 
 
     return credential
-
-# async def send_request_credential(cred_ex_id):
-#     record = await agent_controller.issuer.send_request_for_record(cred_ex_id)
-#     state = record['state']
-#     role = record['role']
-#     print(f"Credential exchange {cred_ex_id}, role: {role}, state: {state}")
-
-#     return record
 
 async def store_credential(cred_ex_id, name):
     res = await agent_controller.issuer.store_credential(cred_ex_id, name)
@@ -172,12 +177,14 @@ async def get_record(record_id):
 
 # Verification And Proof Calls
 async def send_presentation(conn_id):
-    response = await agent_controller.proofs.get_records(connection_id=conn_id)
-    print(response)
+    response = await agent_controller.proofs.get_records(connection_id=conn_id, state='request_received')
+    # print(response)
 
     print('\n')
 
+    # print(response)
     results = response['results']
+    print(results)
     state = results[0]["state"]
     presentation_exchange_id = results[0]['presentation_exchange_id']
     presentation_request = results[0]['presentation_request']
@@ -333,7 +340,7 @@ async def getAllRecords():
 
 
 # Helper Functions
-async def find_credential(cred_def_id, issuer_did, schema_id, schema_issuer_did, schema_name, schema_version):
+async def find_credential(cred_def_id, schema_id):
     results = await agent_controller.issuer.get_records()
     if len(results) == 0:
         print("You need to first send a credential from the issuer (Alice)")
@@ -341,7 +348,5 @@ async def find_credential(cred_def_id, issuer_did, schema_id, schema_issuer_did,
     else:
         all_cred_reqs = results["results"]
         for credential in all_cred_reqs:
-            # cred_proposal = credential['credential_proposal_dict']
-            print(credential)
-            if(credential['cred_def_id'] == cred_def_id and credential['schema_id'] == schema_id and credential['issuer_did'] == issuer_did and credential['schema_issuer_did'] == schema_issuer_did and credential['schema_name'] == schema_name and credential['schema_version'] == schema_version):
+            if(credential['credential_definition_id'] == cred_def_id and credential['schema_id'] == schema_id and  credential['state'] == 'offer_received'):
                 return credential

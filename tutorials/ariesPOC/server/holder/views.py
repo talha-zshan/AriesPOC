@@ -35,23 +35,13 @@ async def check_active(request: web.Request):
         return web.json_response(json_response)
 
 
-async def approveAndGet(self):
-    res = await holder_controller.get_holder_records()
-    json = {'data': res}
-    return web.json_response(json)
-
 async def accept_cred_request(request: web.Request):
     payload = await request.json()
-    
     # parse the attributes
     cred_def_id = payload['cred_def_id']
-    issuer_did = payload['issuer_did']
     schema_id = payload['schema_id']
-    schema_issuer_did = payload['schema_issuer_did']
-    schema_name = payload['schema_name']
-    schema_version = payload['schema_version']
 
-    res = await holder_controller.accept_credential(cred_def_id,issuer_did, schema_id, schema_issuer_did, schema_name, schema_version)
+    res = await holder_controller.accept_credential(cred_def_id, schema_id)
     
     return web.json_response(res)
 
@@ -64,8 +54,8 @@ async def send_proof_proposal():
     return 0
 
 async def send_proof(request: web.Request):
-    payload = request.json()
-    conn_id = payload['conn_id']
+    payload = await request.json()
+    conn_id = payload['connection_id']
     result = await holder_controller.send_presentation(conn_id)
     return web.json_response(result)
 

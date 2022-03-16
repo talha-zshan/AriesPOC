@@ -213,7 +213,7 @@ async def build_request(issuer_did):
     SELF_ATTESTED = False
     exchange_tracing = False
 
-    # Enable this to ask for attributes to identity a user
+    # Enable this to ask for attributes to identify a user
     req_attrs = [
         {"name": "name", "restrictions": [{"issuer_did": issuer_did}]},
         {"name": "email", "restrictions": [{"issuer_did": issuer_did}]},
