@@ -62,8 +62,8 @@ EOF
 # -----------------------------------------------------------------------------------------------------------------
 # Default Settings:
 # -----------------------------------------------------------------------------------------------------------------
-DEFAULT_CONTAINERS="tails-server bob-agent alice-agent ledger-nodes ledger-browser setup issuer-server holder-server bob-ngrok-agent alice-ngrok-agent"
-
+# DEFAULT_CONTAINERS="tails-server alice-agent bob-agent ledger-nodes ledger-browser issuer-server holder-server alice-ngrok-agent bob-ngrok-agent"
+DEFAULT_CONTAINERS="tails-server  ledger-nodes ledger-browser alice-agent multitenant-ngrok-agent multitenant-agent issuer-server multitenant-server"
 # -----------------------------------------------------------------------------------------------------------------
 # Functions:
 # -----------------------------------------------------------------------------------------------------------------
@@ -144,7 +144,22 @@ configureEnvironment() {
   export ALICE_JUPYTER_PORT="8888"
   export ALICE_WALLET_NAME="Alice Wallet"
   export ALICE_WALLET_KEY="alice_key_00000000000000000000000"
-  export ALICE_ADMIN_SECURE="true"
+
+
+  # Acme-agent
+  export ACME_AGENT_NAME="Acme"
+  export ACME_ADMIN_PORT=8071
+  export ACME_API_KEY="acmee_api_123456789"
+  export ACME_HTTP_PORT=8070
+  export ACME_WEBHOOK_PORT=8072
+  export ACME_WEBHOOK_URL=${ACME_WEBHOOK_URL:-http://$DOCKERHOST:$ACME_WEBHOOK_PORT}
+  export ACME_AGENT_ENDPOINT=${ACME_AGENT_ENDPOINT:-http://$DOCKERHOST:$ACME_HTTP_PORT}
+  export ACME_WALLET_SEED="acmee_seed_000000000000000000000"
+  export ACME_JUPYTER_PORT="8889"
+  export ACME_WALLET_NAME="ACME Wallet"
+  export ACME_WALLET_KEY="acmee_key_00000000000000000000000"
+  export ACME_ADMIN_SECURE="true"
+
 
 }
 

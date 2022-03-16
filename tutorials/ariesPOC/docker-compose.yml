@@ -14,11 +14,11 @@ services:
       - indy_demo
     tty: true
   
-  bob-ngrok-agent:
-    image: wernight/ngrok
-    command: ngrok http agent:${BOB_HTTP_PORT} --log stdout
-    networks:
-      - indy_demo
+  # bob-ngrok-agent:
+  #   image: wernight/ngrok
+  #   command: ngrok http agent:${BOB_HTTP_PORT} --log stdout
+  #   networks:
+  #     - indy_demo
   
   alice-ngrok-agent:
     image: wernight/ngrok
@@ -26,43 +26,49 @@ services:
     networks:
       - indy_demo
 
-  bob-agent:
-    build:
-      context: ../../
-      dockerfile: dockerfiles/agents/Dockerfile.ngrok
-    environment:
-      - ADMIN_URL=http://bob-agent:${BOB_ADMIN_PORT}
-      - AGENT_NAME=${BOB_AGENT_NAME}
-      - ADMIN_PORT=${BOB_ADMIN_PORT}
-      - HTTP_PORT=${BOB_HTTP_PORT}
-      - ACAPY_WEBHOOK_URL=${BOB_WEBHOOK_URL}
-      - AGENT_ENDPOINT=${BOB_AGENT_ENDPOINT}
-      - WALLET_SEED=${BOB_WALLET_SEED}
-      - WALLET_NAME=${BOB_WALLET_NAME}
-      - WALLET_TYPE=${WALLET_TYPE}
-      - WALLET_KEY=${BOB_WALLET_KEY}
-      - ACAPY_ADMIN_INSECURE_MODE=${BOB_ADMIN_SECURE}
-      - ACAPY_TAILS_SERVER_BASE_URL=http://tails-server:6543
-      - GENESIS_URL=${GENESIS_URL}
-      - NGROK_NAME=bob-ngrok-agent
-    ports:
-      - ${BOB_HTTP_PORT}:${BOB_HTTP_PORT}
-      - ${BOB_ADMIN_PORT}:${BOB_ADMIN_PORT}
-    depends_on:
-      - ledger-nodes
-      - tails-server
+  multitenant-ngrok-agent:
+    image: wernight/ngrok
+    command: ngrok http agent:${ACME_HTTP_PORT} --log stdout
     networks:
       - indy_demo
-    entrypoint: /bin/bash
-    command: [
-        "-c",
-        "echo Waiting for ledger to be ready...;
-        sleep 60;
-        curl -d '{\"seed\":\"${BOB_WALLET_SEED}\", \"role\":\"TRUST_ANCHOR\", \"alias\":\"${BOB_AGENT_NAME}\"}' -X POST ${LEDGER_URL}/register; \
-        python3 scripts/parse_yml_env_variables.py -c ./configuration/aries-args-basic.yaml; \
-        sleep 20; \
-        aca-py start --arg-file /tmp/agent_conf.yml",
-      ]
+
+  # bob-agent:
+  #   build:
+  #     context: ../../
+  #     dockerfile: dockerfiles/agents/Dockerfile.ngrok
+  #   environment:
+  #     - ADMIN_URL=http://bob-agent:${BOB_ADMIN_PORT}
+  #     - AGENT_NAME=${BOB_AGENT_NAME}
+  #     - ADMIN_PORT=${BOB_ADMIN_PORT}
+  #     - HTTP_PORT=${BOB_HTTP_PORT}
+  #     - ACAPY_WEBHOOK_URL=${BOB_WEBHOOK_URL}
+  #     - AGENT_ENDPOINT=${BOB_AGENT_ENDPOINT}
+  #     - WALLET_SEED=${BOB_WALLET_SEED}
+  #     - WALLET_NAME=${BOB_WALLET_NAME}
+  #     - WALLET_TYPE=${WALLET_TYPE}
+  #     - WALLET_KEY=${BOB_WALLET_KEY}
+  #     - ACAPY_ADMIN_INSECURE_MODE=${BOB_ADMIN_SECURE}
+  #     - ACAPY_TAILS_SERVER_BASE_URL=http://tails-server:6543
+  #     - GENESIS_URL=${GENESIS_URL}
+  #     - NGROK_NAME=bob-ngrok-agent
+  #   ports:
+  #     - ${BOB_HTTP_PORT}:${BOB_HTTP_PORT}
+  #     - ${BOB_ADMIN_PORT}:${BOB_ADMIN_PORT}
+  #   depends_on:
+  #     - ledger-nodes
+  #     - tails-server
+  #   networks:
+  #     - indy_demo
+  #   entrypoint: /bin/bash
+  #   command: [
+  #       "-c",
+  #       "echo Waiting for ledger to be ready...;
+  #       sleep 60;
+  #       curl -d '{\"seed\":\"${BOB_WALLET_SEED}\", \"role\":\"TRUST_ANCHOR\", \"alias\":\"${BOB_AGENT_NAME}\"}' -X POST ${LEDGER_URL}/register; \
+  #       python3 scripts/parse_yml_env_variables.py -c ./configuration/aries-args-basic.yaml; \
+  #       sleep 20; \
+  #       aca-py start --arg-file /tmp/agent_conf.yml",
+  #     ]
 
   alice-agent:
     build:
@@ -83,10 +89,6 @@ services:
       - ACAPY_TAILS_SERVER_BASE_URL=http://tails-server:6543
       - GENESIS_URL=${GENESIS_URL}
       - NGROK_NAME=alice-ngrok-agent
-      # - ACAPY_MULTITENANT=true
-      # - ACAPY_MULTITENANT_JWT_SECRET="password"
-      # - ACAPY_MULTITENANT_ADMIN=true
-      # - ACAPY_ADMIN_INSECURE_MODE=${ALICE_ADMIN_SECURE}
     ports:
       - ${ALICE_HTTP_PORT}:${ALICE_HTTP_PORT}
       - ${ALICE_ADMIN_PORT}:${ALICE_ADMIN_PORT}
@@ -108,33 +110,78 @@ services:
         aca-py start --arg-file /tmp/agent_conf.yml",
       ]
 
-  setup:
+  multitenant-agent:
     build:
       context: ../../
-      dockerfile: dockerfiles/agents/Dockerfile.createconnection
+      dockerfile: dockerfiles/agents/Dockerfile.ngrok
+    environment:
+      - ADMIN_URL=http://acme-agent:${ACME_ADMIN_PORT}
+      - AGENT_NAME=${ACME_AGENT_NAME}
+      - ADMIN_PORT=${ACME_ADMIN_PORT}
+      - HTTP_PORT=${ACME_HTTP_PORT}
+      - ACAPY_WEBHOOK_URL=${ACME_WEBHOOK_URL}
+      - AGENT_ENDPOINT=${ACME_AGENT_ENDPOINT}
+      - WALLET_SEED=${ACME_WALLET_SEED}
+      - WALLET_NAME=${ACME_WALLET_NAME}
+      - WALLET_TYPE=${WALLET_TYPE}
+      - WALLET_KEY=${ACME_WALLET_KEY}
+      # - ACAPY_ADMIN_API_KEY=${ACME_API_KEY}
+      # - ACAPY_TAILS_SERVER_BASE_URL=http://tails-server:6543
+      - GENESIS_URL=${GENESIS_URL}
+      - NGROK_NAME=acme-ngrok-agent
+      - ACAPY_MULTITENANT=true
+      - ACAPY_MULTITENANT_JWT_SECRET="password"
+      - ACAPY_MULTITENANT_ADMIN=true
+      - ACAPY_ADMIN_INSECURE_MODE=${ACME_ADMIN_SECURE}
+    ports:
+      - ${ACME_HTTP_PORT}:${ACME_HTTP_PORT}
+      - ${ACME_ADMIN_PORT}:${ACME_ADMIN_PORT}
+    depends_on:
+      - ledger-nodes
+      - tails-server
     networks:
       - indy_demo
-    depends_on:
-      - alice-agent
-      - bob-agent
-#    ports:
-#      - ${ALICE_WEBHOOK_PORT}:${ALICE_WEBHOOK_PORT}
-#      - ${BOB_WEBHOOK_PORT}:${BOB_WEBHOOK_PORT}
-    environment:
-      - ALICE_ADMIN_URL=http://alice-agent:${ALICE_ADMIN_PORT}
-      - ALICE_WEBHOOK_PORT=${ALICE_WEBHOOK_PORT}
-      - ALICE_API_KEY=${ALICE_API_KEY}
-      - ALICE_WEBHOOK_HOST=0.0.0.0
-      - BOB_ADMIN_URL=http://bob-agent:${BOB_ADMIN_PORT}
-      - BOB_WEBHOOK_PORT=${BOB_WEBHOOK_PORT}
-      - BOB_WEBHOOK_HOST=0.0.0.0
+#    volumes:
+#      - alice-wallet:/indy/home/.indy_client/default
     entrypoint: /bin/bash
-    command:
-      [
+    command: [
         "-c",
-        "sleep 100;
-        python ./create_connection.py"
+        "echo Waiting for ledger to be ready...;
+        sleep 60;
+        curl -d '{\"seed\":\"${ACME_WALLET_SEED}\", \"role\":\"TRUST_ANCHOR\", \"alias\":\"${ACME_AGENT_NAME}\"}' -X POST ${LEDGER_URL}/register; \
+        python3 scripts/parse_yml_env_variables.py -c ./configuration/aries-args-basic.yaml; \
+        sleep 20; \
+        aca-py start --arg-file /tmp/agent_conf.yml",
       ]
+
+
+#   setup:
+#     build:
+#       context: ../../
+#       dockerfile: dockerfiles/agents/Dockerfile.createconnection
+#     networks:
+#       - indy_demo
+#     depends_on:
+#       - alice-agent
+#       - bob-agent
+# #    ports:
+# #      - ${ALICE_WEBHOOK_PORT}:${ALICE_WEBHOOK_PORT}
+# #      - ${BOB_WEBHOOK_PORT}:${BOB_WEBHOOK_PORT}
+#     environment:
+#       - ALICE_ADMIN_URL=http://alice-agent:${ALICE_ADMIN_PORT}
+#       - ALICE_WEBHOOK_PORT=${ALICE_WEBHOOK_PORT}
+#       - ALICE_API_KEY=${ALICE_API_KEY}
+#       - ALICE_WEBHOOK_HOST=0.0.0.0
+#       - BOB_ADMIN_URL=http://bob-agent:${BOB_ADMIN_PORT}
+#       - BOB_WEBHOOK_PORT=${BOB_WEBHOOK_PORT}
+#       - BOB_WEBHOOK_HOST=0.0.0.0
+#     entrypoint: /bin/bash
+#     command:
+#       [
+#         "-c",
+#         "sleep 100;
+#         python ./create_connection.py"
+#       ]
   
   issuer-server:
     build:
@@ -150,36 +197,58 @@ services:
       API_KEY: ${ALICE_API_KEY}
     networks:
       - indy_demo
-    depends_on:
-      - setup
+    # depends_on:
+    #   - setup
     entrypoint: /bin/bash
     command: [
       "-c",
       "sleep 150;
       python3 -u /issuer/main.py;"
     ]
-  
-  holder-server:
+
+  multitenant-server:
     build:
       context: server
-      dockerfile: Dockerfile.holder
+      dockerfile: Dockerfile.multitenant
     ports:
-      - 8001:8000
-      - ${BOB_WEBHOOK_PORT}:${BOB_WEBHOOK_PORT}
+      - 8002:8000
+      - ${ACME_WEBHOOK_PORT}:${ACME_WEBHOOK_PORT}
     environment:
       WEBHOOK_HOST: 0.0.0.0
-      ADMIN_URL: http://bob-agent:${BOB_ADMIN_PORT}
-      WEBHOOK_PORT: ${BOB_WEBHOOK_PORT}
-      API_KEY: ${BOB_API_KEY}
+      ADMIN_URL: http://multitenant-agent:${ACME_ADMIN_PORT}
+      WEBHOOK_PORT: ${ACME_WEBHOOK_PORT}
+      API_KEY: ${ACME_API_KEY}
     networks:
       - indy_demo
     entrypoint: /bin/bash
     command: [
       "-c",
       "sleep 150;
-      python3 -u /holder/main.py;"
+      python3 -u /multitenant/main.py;"
     ]
 
+
+  # holder-server:
+  #   build:
+  #     context: server
+  #     dockerfile: Dockerfile.holder
+  #   ports:
+  #     - 8001:8000
+  #     - ${BOB_WEBHOOK_PORT}:${BOB_WEBHOOK_PORT}
+  #   environment:
+  #     WEBHOOK_HOST: 0.0.0.0
+  #     ADMIN_URL: http://bob-agent:${BOB_ADMIN_PORT}
+  #     WEBHOOK_PORT: ${BOB_WEBHOOK_PORT}
+  #     API_KEY: ${BOB_API_KEY}
+  #   networks:
+  #     - indy_demo
+  #   entrypoint: /bin/bash
+  #   command: [
+  #     "-c",
+  #     "sleep 150;
+  #     python3 -u /holder/main.py;"
+  #   ]
+  
   ledger-browser:
     build:
       context: https://github.com/bcgov/von-network.git
